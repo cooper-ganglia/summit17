@@ -1,0 +1,59 @@
+---
+import { site } from '../data/site';
+interface Props { limit?: number; }
+const { limit = 3 } = Astro.props;
+---
+<article class="show-card" data-show-card>
+  <div class="show-intro">
+    <div><p class="eyebrow">Live dates, automatically updated</p><h3>See you out there.</h3></div>
+    <a class="show-all" href={site.links.bandsintown} target="_blank" rel="noopener">All dates on Bandsintown <span aria-hidden="true">↗</span></a>
+  </div>
+  <div class="show-events" data-bandsintown>
+    <p class="show-loading" data-show-loading>Checking the latest shows…</p>
+    <a class="bit-widget-initializer" data-artist-name={`id_${site.bandsintownArtistId}`} data-display-local-dates="false" data-display-past-dates="false" data-auto-style="false" data-text-color="#f7f1ed" data-link-color="#c69cf1" data-background-color="#100d13" data-separator-color="#56475d" data-display-limit={limit} data-display-lineup="false" data-display-play-my-city="false" href={site.links.bandsintown}>View Summit 17 concerts</a>
+    <noscript><a href={site.links.bandsintown}>See upcoming dates on Bandsintown</a></noscript>
+  </div>
+</article>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-show-card]').forEach((card) => {
+    const widget = card.querySelector<HTMLElement>('[data-bandsintown]');
+    if (!widget) return;
+    const load = () => {
+      if (!document.querySelector('script[data-bandsintown-script]')) {
+        const script = document.createElement('script');
+        script.src = 'https://widgetv3.bandsintown.com/main.min.js';
+        script.async = true;
+        script.dataset.bandsintownScript = 'true';
+        script.addEventListener('load', () => card.querySelector('[data-show-loading]')?.remove());
+        script.addEventListener('error', () => { const loading = card.querySelector('[data-show-loading]'); if (loading) loading.textContent = 'Live dates are unavailable here right now. View them on Bandsintown.'; });
+        document.body.append(script);
+      }
+    };
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => { if (entries[0].isIntersecting) { load(); observer.disconnect(); } }, { rootMargin: '350px' });
+      observer.observe(widget);
+    } else load();
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      card.addEventListener('pointermove', (event) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--glow-x', `${event.clientX - rect.left}px`);
+        card.style.setProperty('--glow-y', `${event.clientY - rect.top}px`);
+      });
+    }
+  });
+</script>
+<style>
+  .show-card { position: relative; overflow: hidden; padding: clamp(1.5rem, 3vw, 2.5rem); border: 1px solid var(--line); background: rgba(11,9,13,.91); transition: border-color .2s ease, box-shadow .2s ease; }
+  .show-card::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(21rem circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(169,105,225,.14), transparent 68%); transition: opacity .2s ease; }
+  .show-card:hover { border-color: rgba(198,156,241,.5); box-shadow: 0 0 2rem rgba(113,48,174,.12); }
+  .show-card:hover::before { opacity: 1; }
+  .show-intro, .show-events { position: relative; }
+  .show-intro { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line); }
+  .show-intro h3 { margin: 0; }
+  .show-all { color: var(--purple-light); font-size: .8rem; letter-spacing: .1em; text-decoration: none; text-transform: uppercase; white-space: nowrap; }
+  .show-all:hover, .show-all:focus-visible { color: white; text-decoration: underline; text-underline-offset: .3em; }
+  .show-events { min-height: 8rem; padding-top: 1.2rem; }
+  .show-loading { color: var(--muted); }
+  @media (max-width: 600px) { .show-intro { align-items: start; flex-direction: column; } .show-all { white-space: normal; } }
+  @media (prefers-reduced-motion: reduce) { .show-card, .show-card::before { transition: none; } }
+</style>

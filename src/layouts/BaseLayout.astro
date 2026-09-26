@@ -1,0 +1,40 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../data/site';
+import { localPath } from '../lib/localPath';
+import '../styles/global.css';
+
+interface Props { title?: string; description?: string; image?: string; canonical?: string; schema?: Record<string, unknown> | Record<string, unknown>[]; }
+const { title, description = site.description, image, canonical, schema } = Astro.props;
+const fullTitle = title ? `${title} | ${site.name}` : `${site.name} | Christian Alternative Rock`;
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, site.url).toString();
+const ogImage = image ?? new URL(localPath('/og-image.jpg'), new URL(site.url).origin).toString();
+const schemas = Array.isArray(schema) ? schema : schema ? [schema] : [];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/png" href={localPath('/favicon.png')} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0b090d" />
+    {schemas.map((item) => <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />)}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header />
+    <main id="main"><slot /></main>
+    <Footer />
+  </body>
+</html>

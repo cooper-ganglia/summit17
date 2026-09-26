@@ -1,0 +1,66 @@
+---
+import { localPath } from '../lib/localPath';
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import AudioPlayer from '../components/AudioPlayer.astro';
+import YouTubeLite from '../components/YouTubeLite.astro';
+import Icon from '../components/Icon.astro';
+import { media, site, tracks, videos } from '../data/site';
+const bookingReasons = ['Professional communication', 'Original Christian alternative rock', 'High-energy live performance', 'Family-friendly', 'Flexible for churches & festivals', 'Easy advance process'];
+---
+<BaseLayout title="Press Kit" description="Summit 17 press kit: band bio, music, downloadable press photos, live footage, reviews, and booking information.">
+  <PageHero eyebrow="For media & talent buyers" title="Press kit / Summit 17" intro="The story, the sound, the photos, and the proof—everything needed to cover or book Summit 17." number="04" />
+  <section class="section section-paper"><div class="shell press-intro"><div><p class="eyebrow">Official bio</p><h2>Anthems of faith.<br />Energy with purpose.</h2></div><div class="bio"><p class="lede">Based out of <strong>Carbondale, Illinois</strong>, Summit 17 is a high-energy Christian alternative rock band known for powerful live shows, heavy guitar riffs, and singable choruses.</p><p>The band has performed at events including <strong>Kingdom Come Festival, Audiofeed Festival, and Hopefest</strong>, and has shared the stage with artists such as <strong>Ignescent, Undefeated, Drown the Planet, and Lee Marie.</strong></p><p>Their music blends passion, authenticity, and faith into an energetic sound that speaks to real struggles, celebrates real victories, and points people toward Jesus.</p><div class="button-row"><a class="button button-dark" href={`mailto:${site.email}`}>Request press materials</a><button class="button" type="button" onclick="window.print()">Print press kit</button></div></div></div></section>
+
+  <section class="section"><div class="shell press-grid"><div><div class="section-heading"><div><p class="eyebrow">Sample tracks</p><h2>The sound.</h2></div><span class="kicker-number">01</span></div><AudioPlayer tracks={tracks} /></div><aside class="credentials"><p class="eyebrow">Selected credentials</p><h3>Featured at</h3><p>Kingdom Come Festival<br />Audiofeed Festival<br />Hopefest</p><div class="rule"></div><h3>Shared the stage with</h3><p>Ignescent<br />Undefeated<br />Drown the Planet<br />Lee Marie</p><a class="text-link" href={site.links.distrokid} target="_blank" rel="noopener">Stream everywhere <Icon name="external" /></a></aside></div></section>
+
+  <section class="section section-paper"><div class="shell"><div class="section-heading"><div><p class="eyebrow">Approved imagery</p><h2>Press photos.</h2><p>Click the download link beneath each image for the original high-resolution file.</p></div><span class="kicker-number">02</span></div><div class="press-photos">{media.press.map((photo, index) => <figure><Image src={photo} alt={`Approved Summit 17 press photo ${index + 1}`} widths={[480, 800, 1200]} sizes="(max-width: 700px) 100vw, 33vw" loading="lazy" /><figcaption><span>Press photo {String(index + 1).padStart(2, '0')}</span><a href={photo.src} download={`summit-17-press-${index + 1}.jpg`}>Download high-res ↓</a></figcaption></figure>)}</div></div></section>
+
+  <section class="section"><div class="shell"><div class="section-heading"><div><p class="eyebrow">Live footage</p><h2>See the room move.</h2></div><span class="kicker-number">03</span></div><div class="video-grid">{videos.map((video) => <YouTubeLite {...video} />)}</div></div></section>
+
+  <section class="section reviews"><div class="shell review-grid"><div><p class="eyebrow">Verified reviews</p><h2>What clients say.</h2><p>Reviews are provided by GigSalad and loaded only when requested to keep this page fast.</p><a class="text-link" href={site.links.gigSalad} target="_blank" rel="noopener">View the GigSalad profile <Icon name="external" /></a></div><div class="gigsalad-panel" data-gigsalad><blockquote>“Summit 17 brings professional communication, real purpose, and the kind of energy that connects with a room.”</blockquote><button class="button" type="button" data-load-reviews>Load verified reviews</button><p class="widget-note" data-review-status>Opens the live GigSalad review panel.</p></div></div></section>
+
+  <section class="section section-purple"><div class="shell"><div class="section-heading"><div><p class="eyebrow">Why organizers book Summit 17</p><h2>Built to serve<br />the event.</h2></div><span class="kicker-number">04</span></div><ol class="reason-grid">{bookingReasons.map((reason, index) => <li><span>{String(index + 1).padStart(2, '0')}</span><strong>{reason}</strong></li>)}</ol><p class="book-cta"><a class="button button-dark" href={localPath('/contact')}>Book Summit 17 <Icon name="arrow" /></a></p></div></section>
+
+  <script>
+    const button = document.querySelector<HTMLButtonElement>('[data-load-reviews]');
+    const panel = document.querySelector<HTMLElement>('[data-gigsalad]');
+    button?.addEventListener('click', () => {
+      const frame = document.createElement('iframe');
+      frame.src = 'https://www.gigsalad.com/summit_17_herrin';
+      frame.title = 'Summit 17 reviews on GigSalad'; frame.loading = 'lazy';
+      panel?.replaceChildren(frame);
+    }, { once: true });
+  </script>
+</BaseLayout>
+
+<style>
+  .press-intro { display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(3rem, 8vw, 8rem); }
+  .bio { padding-top: 1rem; }
+  .press-grid { display: grid; grid-template-columns: 1.45fr .55fr; gap: clamp(3rem, 7vw, 7rem); align-items: start; }
+  .credentials { position: sticky; top: 7rem; padding: 2rem; border: 1px solid var(--line); background: var(--ink-soft); }
+  .credentials h3 { margin-top: 2rem; font-size: 1.4rem; color: var(--purple-light); }
+  .credentials .text-link { margin-top: 2rem; }
+  .press-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .press-photos figure { margin: 0; background: white; border: 1px solid rgba(11,9,13,.15); }
+  .press-photos img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+  .press-photos figcaption { display: flex; justify-content: space-between; gap: .8rem; padding: .8rem; font-size: .75rem; text-transform: uppercase; }
+  .press-photos figcaption span { color: #655d68; }
+  .video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .video-grid > :last-child { grid-column: 1 / -1; width: 68%; margin-inline: auto; }
+  .reviews { background: var(--ink-soft); }
+  .review-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(3rem, 8vw, 8rem); align-items: center; }
+  .gigsalad-panel { min-height: 22rem; display: grid; place-content: center; justify-items: start; padding: clamp(2rem, 5vw, 4rem); border: 1px solid var(--line); background: var(--ink); }
+  .gigsalad-panel blockquote { margin: 0 0 2rem; font-family: var(--display); font-size: clamp(1.7rem, 3vw, 2.7rem); line-height: 1.15; text-transform: uppercase; }
+  .gigsalad-panel :global(iframe) { width: 100%; min-height: 38rem; border: 0; background: white; }
+  .widget-note { color: var(--muted); font-size: .8rem; }
+  .reason-grid { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; padding: 0; border-top: 1px solid rgba(255,255,255,.3); }
+  .reason-grid li { min-height: 11rem; display: grid; align-content: space-between; padding: 1.5rem; border-right: 1px solid rgba(255,255,255,.3); border-bottom: 1px solid rgba(255,255,255,.3); }
+  .reason-grid span { color: var(--ink); }
+  .reason-grid strong { font-family: var(--display); font-size: clamp(1.25rem, 2.5vw, 2rem); font-weight: 400; line-height: 1.1; text-transform: uppercase; }
+  .book-cta { margin: 3rem 0 0; text-align: right; }
+  @media (max-width: 850px) { .press-intro, .press-grid, .review-grid { grid-template-columns: 1fr; } .credentials { position: static; } .press-photos { grid-template-columns: 1fr; } .press-photos img { aspect-ratio: 4/3; } .reason-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 600px) { .video-grid { grid-template-columns: 1fr; } .video-grid > :last-child { grid-column: auto; width: 100%; } .reason-grid { grid-template-columns: 1fr; } }
+  @media print { header, footer, .button, .audio-player, .video-grid, .reviews { display: none !important; } .section { padding: 1.5rem 0; } body { background: white; color: black; } }
+</style>

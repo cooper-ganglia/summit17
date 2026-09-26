@@ -1,0 +1,16 @@
+---
+interface Props { name: 'menu' | 'close' | 'play' | 'pause' | 'previous' | 'next' | 'arrow' | 'external' | 'volume'; size?: number; }
+const { name, size = 22 } = Astro.props;
+const paths = {
+  menu: '<path d="M3 6h18M3 12h18M3 18h18"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  play: '<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>',
+  pause: '<path d="M8 5v14M16 5v14"/>',
+  previous: '<path d="M6 5v14M18 6l-9 6 9 6z" fill="currentColor" stroke="none"/>',
+  next: '<path d="M18 5v14M6 6l9 6-9 6z" fill="currentColor" stroke="none"/>',
+  arrow: '<path d="M5 12h14M14 7l5 5-5 5"/>',
+  external: '<path d="M14 5h5v5M19 5l-9 9M18 13v6H5V6h6"/>',
+  volume: '<path d="M5 10v4h4l5 4V6L9 10H5zM17 9a5 5 0 010 6"/>'
+};
+---
+<svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" set:html={paths[name]} />

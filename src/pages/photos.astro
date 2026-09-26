@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import PhotoGrid from '../components/PhotoGrid.astro';
+import { photos } from '../data/site';
+---
+<BaseLayout title="Photos" description="Live performance photography from Summit 17 shows, festivals, and events.">
+  <PageHero eyebrow="Photo archive" title="Photos / From the pit" intro="Thirteen frames from loud rooms, festival stages, and the moments when the crowd becomes part of the band." number="03" />
+  <section class="section"><div class="shell"><PhotoGrid photos={photos} /></div></section>
+</BaseLayout>

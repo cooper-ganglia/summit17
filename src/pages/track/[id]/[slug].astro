@@ -1,0 +1,26 @@
+---
+import { localPath } from '../../../lib/localPath';
+import type { GetStaticPaths } from 'astro';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AudioPlayer from '../../../components/AudioPlayer.astro';
+import Icon from '../../../components/Icon.astro';
+import { media, site, tracks, type Track } from '../../../data/site';
+
+export const getStaticPaths = (() => tracks.flatMap((track) => track.legacyIds.map((id) => ({ params: { id, slug: track.slug }, props: { track, canonicalId: track.id } })))) satisfies GetStaticPaths;
+interface Props { track: Track; canonicalId: string; }
+const { track, canonicalId } = Astro.props;
+const canonical = `${site.url}/track/${canonicalId}/${track.slug}`;
+const schema = { '@context': 'https://schema.org', '@type': 'MusicRecording', name: track.title, byArtist: { '@type': 'MusicGroup', name: 'Summit 17' }, duration: track.duration, url: canonical };
+---
+<BaseLayout title={track.title} description={`Listen to ${track.title} by Summit 17.`} canonical={canonical} schema={schema}>
+  <section class="track-page"><div class="shell track-layout"><div class="track-art"><Image src={media.hero} alt="Summit 17 album artwork" widths={[520, 850]} sizes="(max-width: 760px) 90vw, 38vw" /></div><div><p class="eyebrow">Track · Summit 17</p><h1>{track.title}</h1><p class="lede">Christian alternative rock from the self-titled Summit 17 release.</p><AudioPlayer tracks={[track]} /><div class="button-row"><a class="button" href={site.links.spotify} target="_blank" rel="noopener">Open Spotify <Icon name="external" /></a><a class="button button-ghost" href={localPath('/music')}>All music <Icon name="arrow" /></a></div></div></div></section>
+</BaseLayout>
+<style>
+  .track-page { min-height: 85vh; display: grid; align-items: center; padding: 9rem 0 5rem; background: radial-gradient(circle at 20% 40%, rgba(113,48,174,.35), transparent 40%); }
+  .track-layout { display: grid; grid-template-columns: .72fr 1.28fr; align-items: center; gap: clamp(2rem, 7vw, 7rem); }
+  .track-art { box-shadow: -1rem 1rem 0 var(--purple); transform: rotate(-1deg); }
+  .track-page h1 { margin-bottom: 1rem; }
+  .track-page .audio-player { margin: 2rem 0; }
+  @media (max-width: 760px) { .track-layout { grid-template-columns: 1fr; } .track-art { max-width: 28rem; } }
+</style>

@@ -1,0 +1,9 @@
+---
+import { localPath } from '../lib/localPath';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+---
+<BaseLayout title="Message Sent" description="Thanks for contacting Summit 17.">
+  <section class="thanks"><div class="narrow"><p class="eyebrow">Message received</p><h1>We'll be in touch.</h1><p class="lede">Thanks for reaching out to Summit 17. Your booking request is headed to the band.</p><a class="button" href={localPath('/')}>Back home <Icon name="arrow" /></a></div></section>
+</BaseLayout>
+<style>.thanks { min-height: 80vh; display: grid; place-items: center; padding: 10rem 0 5rem; background: radial-gradient(circle, rgba(113,48,174,.3), transparent 45%); }.thanks h1 { margin-bottom: 1rem; }</style>

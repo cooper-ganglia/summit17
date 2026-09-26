@@ -1,0 +1,112 @@
+---
+import { localPath } from '../lib/localPath';
+import Icon from './Icon.astro';
+import type { Track } from '../data/site';
+interface Props { tracks: Track[]; compact?: boolean; }
+const { tracks, compact = false } = Astro.props;
+const playerId = `player-${Math.random().toString(36).slice(2, 9)}`;
+---
+<section class:list={['audio-player', { compact }]} data-audio-player id={playerId} aria-label="Summit 17 music player">
+  <audio preload="none" data-audio></audio>
+  <div class="now-playing">
+    <div class="track-index" data-index>01</div>
+    <div class="current-track"><span>Now playing</span><strong data-title>{tracks[0]?.title}</strong><small>Summit 17</small></div>
+    <button class="circle-control" type="button" data-previous aria-label="Previous track"><Icon name="previous" /></button>
+    <button class="main-control" type="button" data-main-play aria-label={`Play ${tracks[0]?.title}`}><span data-play-icon><Icon name="play" size={28} /></span><span data-pause-icon hidden><Icon name="pause" size={28} /></span></button>
+    <button class="circle-control" type="button" data-next aria-label="Next track"><Icon name="next" /></button>
+  </div>
+  <div class="timeline">
+    <span data-current>0:00</span>
+    <input data-seek type="range" min="0" max="100" value="0" step="0.1" aria-label="Track progress" />
+    <span data-duration>0:00</span>
+  </div>
+  <ol class="track-list" tabindex={compact ? 0 : undefined} aria-label={compact ? 'All eight tracks, scroll for more' : undefined}>
+    {tracks.map((track, index) => (
+      <li>
+        <button type="button" class:list={['track-row', { active: index === 0 }]} data-track data-src={localPath(track.audio)} data-title={track.title} data-duration={track.duration} data-index={index} title={`Play ${track.title}`}>
+          <span class="row-number">{String(index + 1).padStart(2, '0')}</span>
+          <span class="row-title">{track.title}<small>{track.artist}</small></span>
+          <span class="row-duration">{track.duration}</span>
+          <span class="row-play"><Icon name="play" size={18} /></span>
+        </button>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-audio-player]').forEach((root) => {
+    if (root.dataset.ready) return;
+    root.dataset.ready = 'true';
+    const audio = root.querySelector<HTMLAudioElement>('[data-audio]')!;
+    const rows = [...root.querySelectorAll<HTMLButtonElement>('[data-track]')];
+    const main = root.querySelector<HTMLButtonElement>('[data-main-play]')!;
+    const previous = root.querySelector<HTMLButtonElement>('[data-previous]')!;
+    const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+    const seek = root.querySelector<HTMLInputElement>('[data-seek]')!;
+    const title = root.querySelector<HTMLElement>('[data-title]')!;
+    const indexLabel = root.querySelector<HTMLElement>('[data-index]')!;
+    const current = root.querySelector<HTMLElement>('[data-current]')!;
+    const duration = root.querySelector<HTMLElement>('[data-duration]')!;
+    const playIcon = root.querySelector<HTMLElement>('[data-play-icon]')!;
+    const pauseIcon = root.querySelector<HTMLElement>('[data-pause-icon]')!;
+    let active = 0;
+    const format = (seconds: number) => Number.isFinite(seconds) ? `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}` : '0:00';
+    const syncPlayState = () => {
+      const playing = !audio.paused;
+      playIcon.hidden = playing;
+      pauseIcon.hidden = !playing;
+      main.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} ${rows[active]?.dataset.title}`);
+    };
+    const select = (index: number, shouldPlay = true) => {
+      active = (index + rows.length) % rows.length;
+      const row = rows[active];
+      rows.forEach((item, i) => { item.classList.toggle('active', i === active); item.title = `${i === active && !audio.paused ? 'Pause' : 'Play'} ${item.dataset.title}`; });
+      if (audio.getAttribute('src') !== row.dataset.src) { audio.src = row.dataset.src!; seek.value = '0'; current.textContent = '0:00'; }
+      title.textContent = row.dataset.title ?? '';
+      duration.textContent = row.dataset.duration ?? '0:00';
+      indexLabel.textContent = String(active + 1).padStart(2, '0');
+      if (shouldPlay) audio.play().catch(() => syncPlayState());
+    };
+    rows.forEach((row, index) => row.addEventListener('click', () => {
+      if (active === index && audio.getAttribute('src') && !audio.paused) audio.pause(); else select(index);
+    }));
+    main.addEventListener('click', () => {
+      if (!audio.getAttribute('src')) select(active); else if (audio.paused) audio.play(); else audio.pause();
+    });
+    previous.addEventListener('click', () => select(active - 1));
+    next.addEventListener('click', () => select(active + 1));
+    seek.addEventListener('input', () => { if (audio.duration) audio.currentTime = (Number(seek.value) / 100) * audio.duration; });
+    audio.addEventListener('timeupdate', () => { current.textContent = format(audio.currentTime); seek.value = String(audio.duration ? audio.currentTime / audio.duration * 100 : 0); });
+    audio.addEventListener('loadedmetadata', () => duration.textContent = format(audio.duration));
+    audio.addEventListener('play', syncPlayState);
+    audio.addEventListener('pause', syncPlayState);
+    audio.addEventListener('ended', () => select(active + 1));
+  });
+</script>
+
+<style>
+  .audio-player { border: 1px solid var(--line); background: rgba(10,8,12,.84); box-shadow: 1rem 1rem 0 rgba(113,48,174,.25); }
+  .now-playing { display: grid; grid-template-columns: 4rem 1fr auto auto auto; align-items: center; gap: 1rem; padding: 1.25rem; border-bottom: 1px solid var(--line); }
+  .track-index { color: var(--purple-light); font-family: var(--display); font-size: 2rem; }
+  .current-track { display: grid; line-height: 1.2; }
+  .current-track span, .current-track small { color: var(--muted); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; }
+  .current-track strong { font-family: var(--display); font-size: 1.25rem; font-weight: 400; text-transform: uppercase; }
+  .circle-control, .main-control { display: grid; place-items: center; border: 1px solid var(--line); background: transparent; color: var(--paper); cursor: pointer; }
+  .circle-control { width: 2.8rem; height: 2.8rem; }
+  .main-control { width: 3.6rem; height: 3.6rem; background: var(--red); border-color: var(--red); }
+  .timeline { display: grid; grid-template-columns: 3rem 1fr 3rem; align-items: center; gap: .75rem; padding: .75rem 1.25rem; color: var(--muted); font-size: .72rem; }
+  input[type='range'] { width: 100%; accent-color: var(--red); }
+  .track-list { list-style: none; margin: 0; padding: 0; }
+  .track-list li + li { border-top: 1px solid var(--line); }
+  .track-row { width: 100%; display: grid; grid-template-columns: 3.5rem 1fr auto 2rem; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border: 0; background: transparent; color: var(--paper); text-align: left; cursor: pointer; }
+  .track-row:hover, .track-row.active { background: rgba(113,48,174,.18); }
+  .track-row.active .row-number, .track-row.active .row-title { color: var(--purple-light); }
+  .row-number, .row-duration { color: var(--muted); font-size: .78rem; }
+  .row-title { display: grid; font-family: var(--display); letter-spacing: .02em; text-transform: uppercase; }
+  .row-title small { color: var(--muted); font-family: var(--body); font-size: .68rem; letter-spacing: .1em; }
+  .row-play { display: grid; }
+  .compact .track-list { max-height: 17rem; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: var(--purple) transparent; scrollbar-width: thin; }
+  .compact .track-list:focus-visible { outline: 2px solid var(--purple-light); outline-offset: -2px; }
+  @media (max-width: 600px) { .now-playing { grid-template-columns: 1fr repeat(3, auto); } .track-index { display: none; } .circle-control { width: 2.4rem; height: 2.4rem; } .track-row { grid-template-columns: 2rem 1fr auto 1.25rem; padding-inline: .8rem; } }
+</style>

@@ -1,0 +1,21 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import ShowCard from '../components/ShowCard.astro';
+import { media, site } from '../data/site';
+---
+<BaseLayout title="Shows" description="See Summit 17 live. Find upcoming Christian rock shows, tickets, reminders, and Bandsintown updates.">
+  <PageHero eyebrow="On the road" title="Shows / Come alive" intro="The songs hit different when the room sings them back. Find the next Summit 17 show and bring somebody with you." number="02" />
+  <section class="section shows-section"><div class="shows-bg"><Image src={media.shows} alt="" widths={[900, 1500, 2200]} sizes="100vw" /></div><div class="shell shows-content"><div class="section-heading"><div><p class="eyebrow">Upcoming shows</p><h2>Meet us<br />at the front.</h2></div><span class="kicker-number">LIVE</span></div><ShowCard limit={6} /></div></section>
+  <section class="section section-paper"><div class="shell bandsintown-intro"><div><p class="eyebrow">Stay in the loop</p><h2>Follow the tour.</h2></div><div><p class="lede">Follow Summit 17 on Bandsintown for new dates, reminders, and requests in your city.</p><div class="button-row"><a class="button button-dark" href={`https://bandsintown.com/artist-subscribe/${site.bandsintownArtistId}?app_id=summit17official`} target="_blank" rel="noopener">Follow us</a><a class="button" href={`https://bandsintown.com/artist-subscribe/${site.bandsintownArtistId}?app_id=summit17official&play_my_city=true`} target="_blank" rel="noopener">Request a show</a></div></div></div></section>
+</BaseLayout>
+<style>
+  .shows-section { overflow: hidden; }
+  .shows-bg { position: absolute; inset: 0; }
+  .shows-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,9,13,.98), rgba(11,9,13,.72)); }
+  .shows-bg img { width: 100%; height: 100%; object-fit: cover; }
+  .shows-content { position: relative; }
+  .bandsintown-intro { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(3rem, 8vw, 8rem); align-items: start; }
+  @media (max-width: 800px) { .bandsintown-intro { grid-template-columns: 1fr; } }
+</style>

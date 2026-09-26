@@ -1,0 +1,166 @@
+---
+import { Image, getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props { photo: ImageMetadata; depth: ImageMetadata; }
+const { photo, depth } = Astro.props;
+const photoTexture = await getImage({ src: photo, width: 1920, format: 'webp', quality: 82 });
+const depthTexture = await getImage({ src: depth, width: 960, format: 'png' });
+---
+<div class="about-photo" data-depth-photo>
+  <div class="photo-shadow" aria-hidden="true"></div>
+  <div class="photo-scene">
+    <Image class="photo-still" src={photo} alt="The three members of Summit 17 smiling together" widths={[520, 900, 1440, 1920]} sizes="(max-width: 850px) 100vw, 60vw" format="webp" loading="lazy" />
+    <canvas class="depth-canvas" aria-hidden="true" data-photo-src={photoTexture.src} data-depth-src={depthTexture.src}></canvas>
+  </div>
+  <span class="photo-badge">Carbondale / IL</span>
+</div>
+
+<script>
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll<HTMLElement>('[data-depth-photo]').forEach((root) => {
+    const scene = root.querySelector<HTMLElement>('.photo-scene')!;
+    const canvas = root.querySelector<HTMLCanvasElement>('.depth-canvas')!;
+    let renderer: { draw: (x: number, y: number) => void; resize: () => void } | null = null;
+    let loading = false;
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let frame = 0;
+
+    const schedule = () => { if (!frame && renderer) frame = requestAnimationFrame(tick); };
+    const tick = () => {
+      frame = 0;
+      if (!renderer) return;
+      currentX += (targetX - currentX) * .2;
+      currentY += (targetY - currentY) * .2;
+      renderer.draw(currentX, currentY);
+      if (Math.abs(targetX - currentX) + Math.abs(targetY - currentY) > .003) schedule();
+    };
+
+    const loadImage = (url: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new window.Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error(`Could not load ${url}`));
+      image.src = url;
+    });
+
+    const makeRenderer = async () => {
+      const gl = canvas.getContext('webgl', { alpha: false, antialias: false, powerPreference: 'low-power' });
+      if (!gl) return null;
+      const [photo, depth] = await Promise.all([loadImage(canvas.dataset.photoSrc!), loadImage(canvas.dataset.depthSrc!)]);
+      const compile = (type: number, source: string) => {
+        const shader = gl.createShader(type)!;
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || 'Shader compile failed');
+        return shader;
+      };
+      const vertex = compile(gl.VERTEX_SHADER, `
+        attribute vec2 aPosition;
+        varying vec2 vUv;
+        void main() { vUv = (aPosition + 1.0) * 0.5; gl_Position = vec4(aPosition, 0.0, 1.0); }
+      `);
+      const fragment = compile(gl.FRAGMENT_SHADER, `
+        precision highp float;
+        uniform sampler2D uPhoto;
+        uniform sampler2D uDepth;
+        uniform vec2 uMotion;
+        varying vec2 vUv;
+        void main() {
+          float depth = texture2D(uDepth, vUv).r;
+          vec2 sampleUv = clamp(vUv - uMotion * (depth - 0.35) * 0.006, vec2(0.001), vec2(0.999));
+          gl_FragColor = texture2D(uPhoto, sampleUv);
+        }
+      `);
+      const program = gl.createProgram()!;
+      gl.attachShader(program, vertex);
+      gl.attachShader(program, fragment);
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || 'Shader link failed');
+      gl.useProgram(program);
+      const vertices = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,-1, 1,1, -1,1]), gl.STATIC_DRAW);
+      const position = gl.getAttribLocation(program, 'aPosition');
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+      const texture = (image: HTMLImageElement, unit: number) => {
+        gl.activeTexture(gl.TEXTURE0 + unit);
+        gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      };
+      texture(photo, 0);
+      texture(depth, 1);
+      gl.uniform1i(gl.getUniformLocation(program, 'uPhoto'), 0);
+      gl.uniform1i(gl.getUniformLocation(program, 'uDepth'), 1);
+      const motionLocation = gl.getUniformLocation(program, 'uMotion');
+      const resize = () => {
+        const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+        canvas.width = Math.max(1, Math.round(scene.clientWidth * ratio));
+        canvas.height = Math.max(1, Math.round(scene.clientHeight * ratio));
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      };
+      const draw = (x: number, y: number) => {
+        gl.uniform2f(motionLocation, x, -y);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      };
+      resize();
+      draw(0, 0);
+      return { draw, resize };
+    };
+
+    const start = async () => {
+      if (loading || renderer || motion.matches) return;
+      loading = true;
+      try {
+        renderer = await makeRenderer();
+        if (renderer && !motion.matches) { canvas.classList.add('is-ready'); schedule(); }
+      } catch { /* The still image remains visible if WebGL is unavailable. */ }
+      loading = false;
+    };
+
+    root.addEventListener('pointerenter', (event) => { if (event.pointerType === 'mouse' || event.pointerType === 'pen') void start(); });
+    root.addEventListener('pointermove', (event) => {
+      if ((event.pointerType !== 'mouse' && event.pointerType !== 'pen') || motion.matches) return;
+      const rect = root.getBoundingClientRect();
+      targetX = ((event.clientX - rect.left) / rect.width - .5) * 2;
+      targetY = ((event.clientY - rect.top) / rect.height - .5) * 2;
+      root.style.setProperty('--shadow-x', `${targetX * -2.5}px`);
+      root.style.setProperty('--shadow-y', `${targetY * -2.5}px`);
+      root.style.setProperty('--badge-x', `${targetX * 4}px`);
+      root.style.setProperty('--badge-y', `${targetY * 4}px`);
+      schedule();
+    });
+    root.addEventListener('pointerleave', () => {
+      targetX = targetY = 0;
+      for (const prop of ['--shadow-x', '--shadow-y', '--badge-x', '--badge-y']) root.style.removeProperty(prop);
+      schedule();
+    });
+    motion.addEventListener('change', () => {
+      canvas.classList.toggle('is-ready', !motion.matches && !!renderer);
+      if (motion.matches) { targetX = targetY = 0; schedule(); }
+    });
+    canvas.addEventListener('webglcontextlost', () => canvas.classList.remove('is-ready'));
+    window.addEventListener('resize', () => { renderer?.resize(); renderer?.draw(currentX, currentY); });
+  });
+</script>
+
+<style>
+  .about-photo { position: relative; isolation: isolate; transform: rotate(-1.5deg); }
+  .photo-shadow { position: absolute; inset: 0; z-index: -1; background: var(--purple); transform: translate(calc(1rem + var(--shadow-x, 0px)), calc(1rem + var(--shadow-y, 0px))); transition: transform .15s ease-out; }
+  .photo-scene { position: relative; aspect-ratio: 4/3; overflow: hidden; background: #a89d92; }
+  .photo-still, .depth-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+  .photo-still { object-fit: cover; }
+  .depth-canvas { opacity: 0; pointer-events: none; }
+  .depth-canvas.is-ready { opacity: 1; }
+  .photo-badge { position: absolute; z-index: 2; left: -1rem; bottom: 2rem; padding: .6rem .9rem; background: var(--red); color: white; font-family: var(--display); font-size: .8rem; letter-spacing: .08em; transform: translate(var(--badge-x, 0px), var(--badge-y, 0px)); transition: transform .15s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .photo-shadow, .photo-badge { transition: none; } }
+</style>

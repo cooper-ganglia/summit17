@@ -1,0 +1,28 @@
+---
+interface Props { id: string; title: string; }
+const { id, title } = Astro.props;
+---
+<div class="youtube-lite" data-youtube={id}>
+  <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" width="480" height="360" loading="lazy" />
+  <button type="button" aria-label={`Play video: ${title}`}><span>▶</span><b>Play live footage</b></button>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-youtube]').forEach((video) => {
+    video.querySelector('button')?.addEventListener('click', () => {
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${video.dataset.youtube}?autoplay=1&rel=0`;
+      iframe.title = video.querySelector('button')?.getAttribute('aria-label')?.replace('Play video: ', '') ?? 'Summit 17 video';
+      iframe.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      video.replaceChildren(iframe);
+    }, { once: true });
+  });
+</script>
+<style>
+  .youtube-lite { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #050406; }
+  .youtube-lite img, .youtube-lite :global(iframe) { width: 100%; height: 100%; border: 0; object-fit: cover; }
+  .youtube-lite img { opacity: .72; filter: grayscale(.3) contrast(1.15); }
+  .youtube-lite button { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: .5rem; border: 0; background: transparent; color: white; cursor: pointer; }
+  .youtube-lite button span { display: grid; place-items: center; width: 4rem; height: 4rem; padding-left: .25rem; background: var(--red); font-size: 1.4rem; }
+  .youtube-lite button b { font-family: var(--display); font-size: .85rem; letter-spacing: .05em; text-transform: uppercase; }
+</style>

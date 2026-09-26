@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://summit17official.com/sitemap-index.xml

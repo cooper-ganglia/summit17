@@ -1,0 +1,16 @@
+---
+interface Props { eyebrow: string; title: string; intro: string; number?: string; }
+const { eyebrow, title, intro, number } = Astro.props;
+---
+<section class="page-hero">
+  <div class="shell">
+    <p class="eyebrow">{eyebrow}</p>
+    <h1 set:html={title.replace(' / ', ' <span class="slash">/</span> ')} />
+    <p class="lede">{intro}</p>
+    {number && <span class="hero-number" aria-hidden="true">{number}</span>}
+  </div>
+</section>
+<style>
+  .page-hero .shell { position: relative; z-index: 1; }
+  .hero-number { position: absolute; right: 0; bottom: -4rem; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.12); font-family: var(--display); font-size: clamp(10rem, 26vw, 26rem); line-height: .7; }
+</style>

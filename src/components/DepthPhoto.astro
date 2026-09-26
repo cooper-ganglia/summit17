@@ -71,7 +71,8 @@ const depthTexture = await getImage({ src: depth, width: 960, format: 'png' });
         varying vec2 vUv;
         void main() {
           float depth = texture2D(uDepth, vUv).r;
-          vec2 sampleUv = clamp(vUv - uMotion * (depth - 0.35) * 0.006, vec2(0.001), vec2(0.999));
+          float farBoost = mix(1.6, 1.0, smoothstep(0.10, 0.45, depth));
+          vec2 sampleUv = clamp(vUv - uMotion * (depth - 0.35) * farBoost * 0.006, vec2(0.001), vec2(0.999));
           gl_FragColor = texture2D(uPhoto, sampleUv);
         }
       `);

@@ -20,6 +20,19 @@ import gallery10 from '../assets/images/gallery-10.jpg';
 import gallery11 from '../assets/images/gallery-11.jpg';
 import gallery12 from '../assets/images/gallery-12.jpg';
 import gallery13 from '../assets/images/gallery-13.jpg';
+import depth01 from '../assets/images/gallery-depth-01.png';
+import depth02 from '../assets/images/gallery-depth-02.png';
+import depth03 from '../assets/images/gallery-depth-03.png';
+import depth04 from '../assets/images/gallery-depth-04.png';
+import depth05 from '../assets/images/gallery-depth-05.png';
+import depth06 from '../assets/images/gallery-depth-06.png';
+import depth07 from '../assets/images/gallery-depth-07.png';
+import depth08 from '../assets/images/gallery-depth-08.png';
+import depth09 from '../assets/images/gallery-depth-09.png';
+import depth10 from '../assets/images/gallery-depth-10.png';
+import depth11 from '../assets/images/gallery-depth-11.png';
+import depth12 from '../assets/images/gallery-depth-12.png';
+import depth13 from '../assets/images/gallery-depth-13.png';
 
 export const site = {
   name: 'Summit 17',
@@ -67,21 +80,21 @@ export const tracks: Track[] = [
   { id: '4595679', legacyIds: ['4595679'], title: 'Carol of the Bells', slug: 'carol-of-the-bells', duration: '4:01', audio: '/audio/carol-of-the-bells.mp3', artist: 'Summit 17' }
 ];
 
-export type Photo = { image: ImageMetadata; alt: string; orientation: 'portrait' | 'landscape' };
+export type Photo = { image: ImageMetadata; depth: ImageMetadata; alt: string; orientation: 'portrait' | 'landscape' };
 export const photos: Photo[] = [
-  { image: gallery01, alt: 'Summit 17 performing under purple stage lights', orientation: 'portrait' },
-  { image: gallery02, alt: 'Summit 17 band members performing live', orientation: 'landscape' },
-  { image: gallery03, alt: 'Summit 17 guitarist on stage', orientation: 'portrait' },
-  { image: gallery04, alt: 'Summit 17 performing together at a live show', orientation: 'landscape' },
-  { image: gallery05, alt: 'Live crowd view of Summit 17 on stage', orientation: 'landscape' },
-  { image: gallery06, alt: 'Summit 17 vocalist engaging the audience', orientation: 'landscape' },
-  { image: gallery07, alt: 'Summit 17 musician in a live performance', orientation: 'portrait' },
-  { image: gallery08, alt: 'Summit 17 member photographed during a concert', orientation: 'portrait' },
-  { image: gallery09, alt: 'Summit 17 guitarist performing under concert lights', orientation: 'portrait' },
-  { image: gallery10, alt: 'Summit 17 performing on a festival stage', orientation: 'landscape' },
-  { image: gallery11, alt: 'Wide view of Summit 17 playing live', orientation: 'landscape' },
-  { image: gallery12, alt: 'Summit 17 band performance with stage lighting', orientation: 'landscape' },
-  { image: gallery13, alt: 'Summit 17 guitarist in an energetic performance', orientation: 'portrait' }
+  { image: gallery01, depth: depth01, alt: 'Summit 17 performing under purple stage lights', orientation: 'portrait' },
+  { image: gallery02, depth: depth02, alt: 'Summit 17 band members performing live', orientation: 'landscape' },
+  { image: gallery03, depth: depth03, alt: 'Summit 17 guitarist on stage', orientation: 'portrait' },
+  { image: gallery04, depth: depth04, alt: 'Summit 17 performing together at a live show', orientation: 'landscape' },
+  { image: gallery05, depth: depth05, alt: 'Live crowd view of Summit 17 on stage', orientation: 'landscape' },
+  { image: gallery06, depth: depth06, alt: 'Summit 17 vocalist engaging the audience', orientation: 'landscape' },
+  { image: gallery07, depth: depth07, alt: 'Summit 17 musician in a live performance', orientation: 'portrait' },
+  { image: gallery08, depth: depth08, alt: 'Summit 17 member photographed during a concert', orientation: 'portrait' },
+  { image: gallery09, depth: depth09, alt: 'Summit 17 guitarist performing under concert lights', orientation: 'portrait' },
+  { image: gallery10, depth: depth10, alt: 'Summit 17 performing on a festival stage', orientation: 'landscape' },
+  { image: gallery11, depth: depth11, alt: 'Wide view of Summit 17 playing live', orientation: 'landscape' },
+  { image: gallery12, depth: depth12, alt: 'Summit 17 band performance with stage lighting', orientation: 'landscape' },
+  { image: gallery13, depth: depth13, alt: 'Summit 17 guitarist in an energetic performance', orientation: 'portrait' }
 ];
 
 export const videos = [

@@ -60,7 +60,7 @@ const sharedStage = [
           <a class="button button-dark" href={site.links.livePlaylist} target="_blank" rel="noopener">Watch live <Icon name="external" /></a>
         </div>
       </div>
-      <div class="credits"><div><span>Featured at</span><p class="credits-links">{featured.map(({ name, url }) => <a href={url} target="_blank" rel="noopener">{name}</a>)}</p></div><div><span>Shared the stage with</span><p class="credits-links">{sharedStage.map(({ name, url }) => <a href={url} target="_blank" rel="noopener">{name}</a>)}</p></div></div>
+      <div class="credits"><div><span>Featured at</span><p class="credits-links">{featured.map(({ name, url }, index) => <span class="credit-item"><a href={url} target="_blank" rel="noopener">{name}</a>{index < featured.length - 1 && <i aria-hidden="true">·</i>}</span>)}</p></div><div><span>Shared the stage with</span><p class="credits-links">{sharedStage.map(({ name, url }, index) => <span class="credit-item"><a href={url} target="_blank" rel="noopener">{name}</a>{index < sharedStage.length - 1 && <i aria-hidden="true">·</i>}</span>)}</p></div></div>
     </div>
   </section>
 
@@ -105,10 +105,11 @@ const sharedStage = [
   .about-copy h3 { color: var(--purple); }
   .credits { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 6rem; background: rgba(11,9,13,.2); border: 1px solid rgba(11,9,13,.2); }
   .credits div { padding: 1.5rem; background: var(--paper); }
-  .credits span { display: block; margin-bottom: .4rem; color: var(--red); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; }
+  .credits > div > span { display: block; margin-bottom: .4rem; color: var(--red); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; }
   .credits-links { display: flex; flex-wrap: wrap; gap: .25rem .6rem; margin: 0; }
+  .credit-item { display: inline-flex; align-items: baseline; white-space: nowrap; }
   .credits-links a { color: var(--ink); font-family: var(--display); font-size: clamp(1.05rem, 1.5vw, 1.45rem); line-height: 1.2; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: .2em; text-transform: uppercase; transition: color .2s ease, text-decoration-color .2s ease, transform .2s ease; }
-  .credits-links a:not(:last-child)::after { content: '·'; margin-left: .6rem; color: var(--red); }
+  .credit-item i { margin-left: .6rem; color: var(--red); font-size: 1.2rem; font-style: normal; line-height: 1; }
   .credits-links a:hover, .credits-links a:focus-visible { color: var(--purple); text-decoration-color: currentColor; transform: translateY(-2px); }
   .music-feature { background: radial-gradient(circle at 90% 10%, rgba(113,48,174,.28), transparent 35%), var(--ink); }
   .music-grid { display: grid; grid-template-columns: minmax(18rem, .72fr) 1.3fr; align-items: center; gap: clamp(2rem, 6vw, 6rem); }
